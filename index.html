@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pano</title>
+    <!-- A-Frame library -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+        html, body { height: 100%; margin: 0; background:#000; }
+        #app { position: fixed; inset: 0; width:100%; height:100%; display:block; touch-action:none; }
+        #ui { position: fixed; left:0; right:0; bottom:0; padding:12px; display:grid; gap:8px;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 18%, rgba(0,0,0,.7) 100%);
+            color:#fff; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+        #row { display:flex; align-items:center; gap:8px; flex-wrap: wrap; }
+        button { appearance:none; border:0; border-radius:999px; padding:10px 14px; font-weight:600; background:#fff; color:#000; cursor:pointer; }
+        button.secondary { background: rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.25); }
+        #status { font-size:12px; opacity:.85; line-height:1.3; }
+        .chip { padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); font-size:12px; }
+        #navBtns { position: fixed; top: 12px; right: 12px; z-index: 20; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+        #followBtn[data-on="true"] { background:#06f; color:#fff; }
+        /* Loader overlay */
+        #loader { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; flex-direction:column;
+            background: rgba(0,0,0,.75); color:#fff; z-index:100; transition: opacity .3s ease; }
+        #loader.hidden { opacity:0; pointer-events:none; }
+        #progress { width:200px; height:8px; border-radius:999px; background:rgba(255,255,255,.2); overflow:hidden; margin-top:12px; }
+        #progress div { height:100%; width:0%; background:#fff; transition: width .1s linear; }
+    </style>
+  </head>
+  <body>
+    <div id="app" style="margin-top:60px;"></div>
+
+    <!-- A-Frame Scene -->
+    <a-scene>
+      <!-- Sky with panoramic image -->
+      <a-sky id="sky" rotation="0 -130 0"></a-sky>
+    </a-scene>
+
+    <div id="loader">
+        <div>Loading image…</div>
+        <div id="progress"><div></div></div>
+    </div>
+
+    <div id="navBtns">
+
+        <button id="btnBack" title="Previous 360" style="display:none;">◀ Vorige</button>
+        <button id="btnNext" title="Next 360">Volgende ▶</button>
+    </div>
+
+    <script>
+      const images = ["/lantis-1.jpg", "/lantis-2.jpg", "/lantis-3.jpg"];
+      let currentIndex = 0;
+      const sky = document.getElementById("sky");
+      const loader = document.getElementById("loader");
+      const progressBar = document.querySelector("#progress div");
+      const btnPrev = document.getElementById("btnBack");
+      const btnNext = document.getElementById("btnNext");
+
+      function showLoader() {
+        progressBar.style.width = "0%";
+        loader.classList.remove("hidden");
+      }
+      function updateLoader(percent) {
+        progressBar.style.width = percent + "%";
+      }
+      function hideLoader() {
+        loader.classList.add("hidden");
+      }
+
+      function loadSkyImage(idx) {
+        showLoader();
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', images[idx], true);
+        xhr.responseType = 'blob';
+        xhr.onprogress = function(e) {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            updateLoader(percent);
+          }
+        };
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            updateLoader(100);
+            const blob = xhr.response;
+            const reader = new FileReader();
+            reader.onloadend = function() {
+              sky.setAttribute('src', reader.result);
+              setTimeout(hideLoader, 300);
+            };
+            reader.readAsDataURL(blob);
+          } else {
+            hideLoader();
+            alert('Failed to load image.');
+          }
+        };
+        xhr.onerror = function() {
+          hideLoader();
+          alert('Failed to load image.');
+        };
+        xhr.send();
+      }
+
+      function showImage(idx) {
+        loadSkyImage(idx);
+        btnPrev.style.display = idx === 0 ? "none" : "";
+        btnNext.style.display = idx === images.length - 1 ? "none" : "";
+      }
+
+      btnPrev.onclick = () => {
+        if (currentIndex > 0) {
+          currentIndex--;
+          showImage(currentIndex);
+        }
+      };
+      btnNext.onclick = () => {
+        if (currentIndex < images.length - 1) {
+          currentIndex++;
+          showImage(currentIndex);
+        }
+      };
+
+      // Initial load
+      showImage(currentIndex);
+    </script>
+  </body>
+</html>
