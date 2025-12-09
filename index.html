@@ -43,19 +43,57 @@
     </div>
 
     <div id="navBtns">
-
-        <button id="btnBack" title="Previous 360" style="display:none;">◀ Vorige</button>
-        <button id="btnNext" title="Next 360">Volgende ▶</button>
+      <button id="btnZoomIn" title="Zoom in">＋</button>
+      <button id="btnZoomOut" title="Zoom out">－</button>
+      <button id="btnResetRot" title="Reset view">⟳</button>
+      <button id="btnBack" title="Previous 360" style="display:none;">◀ Vorige</button>
+      <button id="btnNext" title="Next 360">Volgende ▶</button>
     </div>
 
     <script>
-      const images = ["./public/lantis-1.jpg", "./public/lantis-2.jpg", "./public/lantis-3.jpg"];
+      const images = ["./public/lantis-1.jpg", "./public/lantis-2.jpg", "./public/lantis-3.jpg", "./public/ar.avif"];
       let currentIndex = 0;
       const sky = document.getElementById("sky");
       const loader = document.getElementById("loader");
       const progressBar = document.querySelector("#progress div");
       const btnPrev = document.getElementById("btnBack");
       const btnNext = document.getElementById("btnNext");
+      const btnZoomIn = document.getElementById("btnZoomIn");
+      const btnZoomOut = document.getElementById("btnZoomOut");
+      const btnResetRot = document.getElementById("btnResetRot");
+      // Reset rotation logic
+      btnResetRot.onclick = () => {
+        const scene = document.querySelector('a-scene');
+        if (scene && scene.camera) {
+          scene.camera.rotation.set(0, 0, 0);
+          scene.camera.updateProjectionMatrix();
+        }
+        // Also reset look-controls if present
+        const camEl = scene.querySelector('[camera]');
+        if (camEl && camEl.components["look-controls"]) {
+          camEl.components["look-controls"].pitchObject.rotation.x = 0;
+          camEl.components["look-controls"].yawObject.rotation.y = 0;
+        }
+      };
+
+      // Camera zoom logic
+      let fov = 80; // Default A-Frame camera fov
+      const minFov = 30;
+      const maxFov = 120;
+      function setCameraFov(newFov) {
+        fov = Math.max(minFov, Math.min(maxFov, newFov));
+        const camera = document.querySelector('a-scene').camera;
+        if (camera) camera.fov = fov;
+        if (camera) camera.updateProjectionMatrix();
+      }
+      btnZoomIn.onclick = () => {
+        setCameraFov(fov - 10);
+      };
+      btnZoomOut.onclick = () => {
+        setCameraFov(fov + 10);
+      };
+      // Set initial fov
+      window.addEventListener('DOMContentLoaded', () => setTimeout(() => setCameraFov(fov), 500));
 
       function showLoader() {
         progressBar.style.width = "0%";
