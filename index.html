@@ -46,8 +46,10 @@
       <button id="btnZoomIn" title="Zoom in">＋</button>
       <button id="btnZoomOut" title="Zoom out">－</button>
       <button id="btnResetRot" title="Reset view">⟳</button>
-      <button id="btnBack" title="Previous 360" style="display:none;">◀ Vorige</button>
-      <button id="btnNext" title="Next 360">Volgende ▶</button>
+      <button class="img-btn" data-idx="0">Image 1</button>
+      <button class="img-btn" data-idx="1">Image 2</button>
+      <button class="img-btn" data-idx="2">Image 3</button>
+      <!-- <button class="img-btn" data-idx="3">Image 4</button> -->
     </div>
 
     <script>
@@ -56,8 +58,7 @@
       const sky = document.getElementById("sky");
       const loader = document.getElementById("loader");
       const progressBar = document.querySelector("#progress div");
-      const btnPrev = document.getElementById("btnBack");
-      const btnNext = document.getElementById("btnNext");
+      // Remove next/prev logic, use dedicated image buttons
       const btnZoomIn = document.getElementById("btnZoomIn");
       const btnZoomOut = document.getElementById("btnZoomOut");
       const btnResetRot = document.getElementById("btnResetRot");
@@ -140,23 +141,20 @@
       }
 
       function showImage(idx) {
+        currentIndex = idx;
         loadSkyImage(idx);
-        btnPrev.style.display = idx === 0 ? "none" : "";
-        btnNext.style.display = idx === images.length - 1 ? "none" : "";
+        // Highlight active button
+        document.querySelectorAll('.img-btn').forEach((btn, i) => {
+          btn.classList.toggle('secondary', i !== idx);
+        });
       }
 
-      btnPrev.onclick = () => {
-        if (currentIndex > 0) {
-          currentIndex--;
-          showImage(currentIndex);
-        }
-      };
-      btnNext.onclick = () => {
-        if (currentIndex < images.length - 1) {
-          currentIndex++;
-          showImage(currentIndex);
-        }
-      };
+      document.querySelectorAll('.img-btn').forEach(btn => {
+        btn.onclick = () => {
+          const idx = parseInt(btn.getAttribute('data-idx'), 10);
+          showImage(idx);
+        };
+      });
 
       // Initial load
       showImage(currentIndex);
